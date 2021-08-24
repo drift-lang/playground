@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=1800,height=device-height,user-scalable=yes" />
+    <title>The Drift Playground</title>
+</head>
+<style>
+    html,
+    body {
+        margin: 0px;
+        height: 100%;
+	font-family: monospace;
+    }
+
+    *:focus {
+        outline: none;
+    }
+
+    textarea {
+        width: 92%;
+        height: 92%;
+        margin: 2%;
+        padding: 2%;
+        resize: none;
+        border: none;
+        background-color: #E7FFDA;
+    }
+
+    #btn {
+        font-weight: bold;
+    }
+
+    #page {
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    #code-place {
+        width: 50%;
+    }
+
+    #exec-place {
+        width: 50%;
+        padding-top: 20px;
+    }
+
+    #title {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+
+    #exec {
+        margin-top: 30px;
+    }
+
+    #inner {
+        display: flex;
+        align-items: center;
+    }
+
+    #inner p {
+        margin-left: 10px;
+    }
+
+    #custom {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    #custom select {
+        margin-right: 20px;
+    }
+</style>
+
+<body>
+    <div id="page">
+        <div id="code-place">
+            <textarea id="code" onkeydown="tab_catch(this)">
+use <- std
+def Foo
+    def x int = 10
+    def () call #4
+        println("CALL FOO", .x) #5
+def Bar
+    def x int = 20
+    def () call #2
+        def f Foo = new Foo{}
+        f.call() #3,6
+        println("CALL BAR", .x) #7
+def b Bar = new Bar{}
+b.call() #1,8
+b.x
+#   v             v
+# 1.G > BCALL > 2.CF > (E)
+#         ^p           <-</textarea>
+        </div>
+        <div id="exec-place">
+            <div>
+                <div id="custom">
+                    <p id="title">Drift PL Playground</p>
+                    <select id="custom-font" onclick="click_custom()">
+                        <option>Monaco</option>
+                        <option>Monospace</option>
+                        <option>Menlo</option>
+                        <option>Courier</option>
+                    </select>
+                </div>
+                <p>The current interpreter version is: v0.0.1(20210825)</p>
+                <p>Doc is here: <a target="_black" href="https://drift-lang.fun/doc">drift-doc</a>
+                </p>
+            </div>
+            <div id="inner">
+                <button id="btn" onclick="exec()">execute!</button>
+                <p id="status"></p>
+            </div>
+            <p id="result"></p>
+        </div>
+    </div>
+</body>
+<script>
+    // The Drift Playground
+    // GPL v3.0 license to bingxio@qq.com
+    var code = document.getElementById("code")
+    var ws = new WebSocket("ws://192.168.0.188:8080/")
+    var st = document.getElementById("status")
+    var ex = document.getElementById("result")
+
+    code.style.fontFamily = "Monaco"
+    ex.style.fontFamily = "Monaco"
+
+    ws.onopen = function (event) {
+        st.innerText = "Connected."
+    }
+    ws.onmessage = function (event) {
+        st.innerText = "Replied."
+        var data = event.data
+        if (data.startsWith("\033")) {
+            var str = ""
+            for (var i = 7; i < data.length; i++) {
+                str += data[i]
+                if (data[i] == ':') {
+                    i += 4
+                }
+            }
+            ex.innerText = str
+        } else {
+            ex.innerText = data
+        }
+    }
+    ws.onclose = function () {
+        st.innerText = "Connection closed."
+        st.style.color = "red"
+    }
+
+    function exec() {
+        st.innerText = "Request reply.."
+        ex.innerText = ""
+        st.style.color = "black"
+        ws.send(code.value)
+    }
+
+    function tab_catch() {
+        if (event.keyCode == 9) {
+            var p = code.selectionStart
+            var str = ""
+            if (p == code.value.length) {
+                str = code.value + "    "
+            } else {
+                for (var i = 0; i < code.value.length; i++) {
+                    if (i == p) {
+                        str += "    "
+                    }
+                    str += code.value[i]
+                }
+            }
+            code.value = str
+            code.setSelectionRange(code.value.length, p + 4)
+            event.returnValue = false
+        }
+    }
+
+    var custom = document.getElementById("custom-font")
+    function click_custom() {
+        var text = custom.options[custom.selectedIndex].text
+        code.style.fontFamily = text
+        ex.style.fontFamily = text
+    }
+</script>
+
+</html>
