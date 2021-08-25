@@ -12,7 +12,7 @@
     body {
         margin: 0px;
         height: 100%;
-	font-family: monospace;
+        font-family: monospace;
     }
 
     *:focus {
@@ -77,13 +77,17 @@
     #custom select {
         margin-right: 20px;
     }
+
+    #exit {
+        color: grey;
+    }
 </style>
 
 <body>
     <div id="page">
         <div id="code-place">
             <textarea id="code" onkeydown="tab_catch(this)">
-use <- std
+use <-std
 def Foo
     def x int = 10
     def () call #4
@@ -121,6 +125,7 @@ b.x
                 <p id="status"></p>
             </div>
             <p id="result"></p>
+            <p id="exit"></p>
         </div>
     </div>
 </body>
@@ -131,6 +136,7 @@ b.x
     var ws = new WebSocket("ws://192.168.0.188:8080/")
     var st = document.getElementById("status")
     var ex = document.getElementById("result")
+    var it = document.getElementById("exit")
 
     code.style.fontFamily = "Monaco"
     ex.style.fontFamily = "Monaco"
@@ -153,6 +159,7 @@ b.x
         } else {
             ex.innerText = data
         }
+        it.innerText = "Program exited."
     }
     ws.onclose = function () {
         st.innerText = "Connection closed."
@@ -163,6 +170,7 @@ b.x
         st.innerText = "Request reply.."
         ex.innerText = ""
         st.style.color = "black"
+        it.innerText = ""
         ws.send(code.value)
     }
 
