@@ -3,6 +3,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -54,6 +55,9 @@ func recv(w http.ResponseWriter, r *http.Request) {
 func tempFile(code string) (*os.File, string, error) {
 	p := "./tmp/" + time.Now().Format("20060102150405") + ".ft"
 	os.Mkdir("./tmp", os.ModePerm) // Path
+	if fs, _ := ioutil.ReadDir("./tmp"); len(fs) >= 100 {
+		os.RemoveAll("./tmp")
+	}
 	f, err := os.Create(p)
 	if err != nil {
 		return nil, "", err
